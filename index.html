@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="202610171707">
+<meta name="app-version" content="202610171821">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDD-I Orai Billing Dashboard</title>
 <meta name="theme-color" content="#3730a3">
@@ -628,7 +628,25 @@ body.app .pubbtn{display:none}
 .fw-form label>span{display:block}.fw-form .req{color:#dc2626;font-style:normal}
 .fw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.fw-chips button{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;color:inherit}
 .fw-chips button.on{background:#4f46e5;border-color:#4f46e5;color:#fff}
-.fw-tel{display:flex;gap:6px;align-items:center}.fw-tel input{flex:1}
+.fw-tel{display:flex;gap:6px;align-items:center}.fw-tel input{flex:1;min-width:0}.fw-tel .btn{white-space:nowrap}
+.fw-sec{border:1px solid var(--border);border-radius:14px;padding:10px 12px 12px;margin:0 0 10px;background:var(--surface)}
+.fw-sec h4{margin:0 0 8px;font-size:13px;letter-spacing:.02em;color:#4f46e5;text-transform:uppercase}
+.fw-sthint{background:#eef2ff;color:#3730a3;border-radius:10px;padding:7px 10px;font-size:13px;margin:0 0 8px}
+.fw-chips.big button{padding:10px 14px;font-size:14px;font-weight:600}
+.fw-chips button{min-height:38px}.fw-chips button:active{transform:scale(.97)}
+.fw-src{font-weight:500;color:#0369a1;font-size:11px}
+.fw-num{display:flex;align-items:center;gap:6px}.fw-num input{flex:1;min-width:0}.fw-num em{font-style:normal;color:var(--muted);font-size:12px}
+.fw-quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.fw-quick button{border:1px dashed var(--border);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;color:inherit;cursor:pointer}
+.fw-more{border:1px dashed var(--border);border-radius:14px;padding:8px 12px;margin:0 0 10px}.fw-more summary{cursor:pointer;font-size:13px;color:var(--text-2);font-weight:600}.fw-more[open] summary{margin-bottom:8px}
+.fw-draft{background:#fefce8;border:1px solid #fde68a;color:#713f12;border-radius:10px;padding:7px 10px;font-size:13px;margin:0 0 8px}
+.fw-form label.miss>span{color:#dc2626}.fw-form label.miss input,.fw-form label.miss select,.fw-form label.miss textarea,.fw-form label.miss .fw-chips{outline:2px solid #f87171;outline-offset:2px;border-radius:10px}
+.card#feFormCard{overflow:clip}
+.fw-foot{position:sticky;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--border);margin:8px -14px -14px;padding:8px 14px 10px;border-radius:0 0 16px 16px;box-shadow:0 -6px 14px rgba(15,23,42,.06)}
+.fw-foot .fe-actions{margin-top:6px}.fw-foot #fwErr:empty{display:none}
+.fw-prog{position:relative;height:22px;border-radius:999px;background:var(--surface-2,#f1f5f9);overflow:hidden;font-size:12px}
+.fw-prog i{position:absolute;inset:0 auto 0 0;width:0;background:#c7d2fe;transition:width .25s}.fw-prog.ok i{background:#bbf7d0}
+.fw-prog span{position:relative;display:block;text-align:center;line-height:22px;color:var(--text)}
+@media (max-width:640px){.fw-form .fgrid{grid-template-columns:1fr 1fr}.fw-sec{padding:8px 10px 10px}.fw-chips.long{display:grid;grid-template-columns:1fr 1fr;gap:6px}.fw-chips.long button{text-align:left;border-radius:12px;padding:7px 10px;font-size:12.5px;line-height:1.25}.fw-foot{margin:8px -12px -12px;padding:8px 12px 10px}}
 .fw-form .fgrid>label.full{grid-column:1/-1}
 @media(max-width:760px){.fw-type{display:flex}.fw-type button{flex:1 1 30%}}
 .mc-bands{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}.mc-bh{font-size:13px;color:var(--text-2);margin-right:4px}.mc-bands .qc small{opacity:.8;margin-left:4px}
@@ -3437,41 +3455,46 @@ const FW_CALLRESP=['बिल जमा है','कुछ दिन बाद �
 const FW_HOUSE=['KUTCHA HOUSE','PUCCA NORMAL HOUSE','PUCCA GOOD HOUSE','LUXURY (RICH) HOUSE'];
 const FW_PAYMODE=['PAID ONLINE AT SITE','PAID OFFLINE AT COUNTER'];
 const FW_PROMISE=/कुछ दिन बाद|कार्यालय आएंगे|TIME GIVEN/;
+const FW_SEEN=v=>v['Survey Status']!=='CONSUMER NOT FOUND'&&v['Survey Status']!=='HOUSE LOCKED';   // meter / premises observed
+const FW_IN=v=>v['Survey Status']==='CONSUMER FOUND'||v['Survey Status']==='MOBILE REFUSED';             // consumer met
+const FW_NATURE={LMV1:'DOMESTIC',LMV10:'DOMESTIC',LMV2:'COMMERCIAL',HV1:'COMMERCIAL',LMV6:'INDUSTRIAL',HV2:'INDUSTRIAL',LMV5:'AGRICULTURE',LMV3:'GOVERNMENT',LMV4:'GOVERNMENT',LMV7:'GOVERNMENT',LMV8:'GOVERNMENT',LMV9:'TEMPORARY'};
 const FW={
   survey:{l:'📋 Survey',sheet:'Survey Data',idH:'Survey ID',pre:'SURV',
     headers:['User ID','User Name','Account ID','Consumer Name','Father/Husband','Address','Supply Type','Load','SDO Code','Village','Meter Condition','AC Installed','Mobile Number','Created At','Local Record ID','Survey Type','Survey Status','Connection Type','Survey ID','House Locked','Mobile Refused','Meter Installed','Meter Number','Master Reading','Outstanding','Connected Load','Nature of Supply','House Condition','Consumer Payment Response','Consumer Payment Date','Latitude','Longitude','GPS Accuracy','Remarks','Last Updated By User ID','Last Updated By Name','Last Updated At','Feeded Village Name','Connection Status','Last Pay Date','Last Pay Amount','Updated At','Substation','Feeder','DT','Theft Possibility','Site Reading','Site Max Demand'],
+    hint:{'HOUSE LOCKED':'🔒 House locked — fill only what you can see from outside. Payment response is set automatically.','CONSUMER NOT FOUND':'❓ Consumer not found — only the status is needed; add remarks on what you found.','MOBILE REFUSED':'📵 Consumer refused to give a mobile number — the mobile box is hidden.'},
     fields:[
-      {h:'Survey Type',t:'sel',o:['EXISTING CONSUMER','NEW CONNECTION REQUIRED','ILLEGAL (NO CONNECTION)'],req:1,d:'EXISTING CONSUMER'},
-      {h:'Survey Status',t:'chips',o:['CONSUMER FOUND','MOBILE REFUSED','HOUSE LOCKED','CONSUMER NOT FOUND'],req:1,d:'CONSUMER FOUND'},
-      {h:'Village',t:'text',remember:1,list:['ORAI TOWN','NOT_IN_LIST']},
+      {sec:'1 · Visit result',h:'Survey Status',t:'chips',o:['CONSUMER FOUND','MOBILE REFUSED','HOUSE LOCKED','CONSUMER NOT FOUND'],req:1,d:'CONSUMER FOUND',big:1},
+      {h:'Survey Type',t:'chips',o:['EXISTING CONSUMER','NEW CONNECTION REQUIRED','ILLEGAL (NO CONNECTION)'],req:1,d:'EXISTING CONSUMER'},
+      {sec:'2 · Meter & reading',h:'Meter Condition',t:'chips',o:['OK','DAMAGED','BURNT','DEFECTIVE / STUCK','DISPLAY OFF','METER NOT FOUND'],req:v=>FW_SEEN(v),d:'OK'},
       {h:'Meter Number',t:'text',auto:i=>C.mtr[i]||'',cap:1,warn:(v,i)=>v&&C.mtr[i]&&v.replace(/\s/g,'').toUpperCase()!==String(C.mtr[i]).replace(/\s/g,'').toUpperCase()?'⚠ Differs from records ('+C.mtr[i]+')':''},
-      {h:'Meter Condition',t:'sel',o:['OK','DAMAGED','BURNT','DEFECTIVE / STUCK','DISPLAY OFF','METER NOT FOUND'],req:1,d:'OK'},
-      {h:'Site Reading',t:'num',hint:i=>hasRdg(i)?'Billed closing: '+rdgTxt(i):''},
-      {h:'Site Max Demand',t:'num'},
-      {h:'Connected Load',t:'num',warn:(v,i)=>v!==''&&C.ld[i]!=null&&+v>C.ld[i]?`⚠ More than sanctioned (${fmtD(C.ld[i],2)} kW)`:''},
-      {h:'Nature of Supply',t:'sel',o:['DOMESTIC','COMMERCIAL','INDUSTRIAL','AGRICULTURE','GOVERNMENT','TEMPORARY'],req:1},
-      {h:'House Condition',t:'sel',o:FW_HOUSE,req:1},
-      {h:'AC Installed',t:'chips',o:FW_YN,req:1,d:'NO'},
-      {h:'Theft Possibility',t:'sel',o:['NO THEFT','BYPASS IN SERVICE CABLE','EXTRA CABLE OTHER THAN SERVICE CABLE','METER SHUNT DOUBT','DIRECT HOOKING','METER TAMPERED'],req:1,d:'NO THEFT'},
-      {h:'Mobile Number',t:'tel',show:v=>v['Survey Status']!=='MOBILE REFUSED'},
-      {h:'Consumer Payment Response',t:'sel',o:FW_PAYRESP,req:1},
-      {h:'Consumer Payment Date',t:'date',show:v=>FW_PROMISE.test(v['Consumer Payment Response']||'')},
-      {h:'Substation',t:'ss'},{h:'Feeder',t:'fd'},{h:'DT',t:'text',ph:'e.g. 250 KVA near …'},
-      {h:'Connection Type',t:'sel',o:['','POSTPAID','PREPAID']},{h:'Meter Installed',t:'sel',o:['','YES','NO']},
-      {h:'Father/Husband',t:'text'},
-      {h:'Remarks',t:'area'}],
-    derive:v=>({'House Locked':v['Survey Status']==='HOUSE LOCKED'?'YES':'NO','Mobile Refused':v['Survey Status']==='MOBILE REFUSED'?'YES':'NO'}),
+      {h:'Site Reading',t:'num',unit:'kWh',hint:i=>hasRdg(i)?'Billed closing: '+rdgTxt(i):'',
+        warn:(v,i)=>{if(v===''||!hasRdg(i))return'';const d=+v-C.crk[i];return d<0?`⚠ ${rdgN(-d)} kWh LOWER than the billed closing — re-check`:`✔ ${rdgN(d)} kWh used since the last bill`}},
+      {h:'Site Max Demand',t:'num',unit:'kW',warn:(v,i)=>v!==''&&C.ld[i]!=null&&+v>C.ld[i]?`⚠ More than sanctioned load (${fmtD(C.ld[i],2)} kW)`:''},
+      {h:'Connected Load',t:'num',unit:'kW',warn:(v,i)=>v!==''&&C.ld[i]!=null&&+v>C.ld[i]?`⚠ More than sanctioned (${fmtD(C.ld[i],2)} kW)`:''},
+      {sec:'3 · Premises',h:'Nature of Supply',t:'chips',o:['DOMESTIC','COMMERCIAL','INDUSTRIAL','AGRICULTURE','GOVERNMENT','TEMPORARY'],req:v=>FW_SEEN(v),d:i=>FW_NATURE[DIC.tf[C.tf[i]]]||'',dNote:'from tariff'},
+      {h:'House Condition',t:'chips',o:FW_HOUSE,req:v=>v['Survey Status']!=='CONSUMER NOT FOUND'},
+      {h:'AC Installed',t:'chips',o:FW_YN,req:v=>FW_IN(v),d:'NO'},
+      {h:'Theft Possibility',t:'chips',o:['NO THEFT','BYPASS IN SERVICE CABLE','EXTRA CABLE OTHER THAN SERVICE CABLE','METER SHUNT DOUBT','DIRECT HOOKING','METER TAMPERED'],req:v=>FW_SEEN(v),d:'NO THEFT'},
+      {sec:'4 · Consumer & payment',h:'Mobile Number',t:'tel',show:v=>v['Survey Status']!=='MOBILE REFUSED'&&v['Survey Status']!=='HOUSE LOCKED'},
+      {h:'Consumer Payment Response',t:'chips',o:FW_PAYRESP,req:v=>FW_IN(v),show:v=>v['Survey Status']!=='HOUSE LOCKED',locked:'घर पर ताला लगा है'},
+      {h:'Consumer Payment Date',t:'date',show:v=>FW_PROMISE.test(v['Consumer Payment Response']||''),req:1,quick:1},
+      {h:'Remarks',t:'area'},
+      {sec:'5 · Network',h:'Village',t:'text',remember:1,list:['ORAI TOWN','NOT_IN_LIST']},
+      {h:'Substation',t:'ss'},{h:'Feeder',t:'fd'},{h:'DT',t:'text',ph:'e.g. 250 KVA near …',rememberBy:i=>'DT_'+C.fd[i]},
+      {more:1,h:'Connection Type',t:'chips',o:['POSTPAID','PREPAID']},{more:1,h:'Meter Installed',t:'chips',o:['YES','NO']},
+      {more:1,h:'Father/Husband',t:'text'}],
+    derive:v=>({'House Locked':v['Survey Status']==='HOUSE LOCKED'?'YES':'NO','Mobile Refused':v['Survey Status']==='MOBILE REFUSED'?'YES':'NO',...(v['Survey Status']==='HOUSE LOCKED'?{'Consumer Payment Response':'घर पर ताला लगा है'}:{})}),
     autoCols:i=>({'Master Reading':hasRdg(i)?C.crk[i]:'','Outstanding':srPay(i)??''}),
     list:['Created At','Account ID','Consumer Name','Survey Status','Meter Condition','Site Reading','Theft Possibility','Consumer Payment Response','Outstanding','User Name']},
   disc:{l:'✂️ Disconnection',sheet:'Disconnection Data',idH:'Disconnection ID',pre:'DISC',
     headers:['Disconnection ID','User ID','User Name','Account ID','Consumer Name','Father/Husband','Address','Supply Type','Load','SDO Code','Disconnection Status','Payment Mode','Committed Payment Date','Meter Status','Site Reading','Mobile Number','House Condition','Remarks','Latitude','Longitude','GPS Accuracy','Created At','Total Outstanding','Last Updated By User ID','Last Updated By Name','Last Updated At','Feeded Village Name','Connection Status','Last Pay Date','Last Pay Amount','Updated At','Video File','Video Key','Video Uploaded At'],
     fields:[
       {h:'Disconnection Status',t:'chips',o:['DISCONNECTED','TIME GIVEN FOR PAYMENT','PAID','CONSUMER OPPOSED','HOUSE LOCKED','ALREADY DISCONNECTED'],req:1},
-      {h:'Payment Mode',t:'sel',o:FW_PAYMODE,show:v=>v['Disconnection Status']==='PAID',req:1},
+      {h:'Payment Mode',t:'chips',o:FW_PAYMODE,show:v=>v['Disconnection Status']==='PAID',req:1},
       {h:'Committed Payment Date',t:'date',show:v=>v['Disconnection Status']==='TIME GIVEN FOR PAYMENT',req:1},
-      {h:'Meter Status',t:'sel',o:['OK','DAMAGED','METER NOT FOUND'],req:1,d:'OK'},
+      {h:'Meter Status',t:'chips',o:['OK','DAMAGED','METER NOT FOUND'],req:1,d:'OK'},
       {h:'Site Reading',t:'num',hint:i=>hasRdg(i)?'Billed closing: '+rdgTxt(i):''},
-      {h:'House Condition',t:'sel',o:FW_HOUSE,req:1},
+      {h:'House Condition',t:'chips',o:FW_HOUSE,req:1},
       {h:'Mobile Number',t:'tel'},{h:'Father/Husband',t:'text'},{h:'Remarks',t:'area'}],
     autoCols:i=>({'Total Outstanding':srPay(i)??''}),
     list:['Created At','Account ID','Consumer Name','Disconnection Status','Committed Payment Date','Meter Status','Site Reading','Total Outstanding','User Name']},
@@ -3479,9 +3502,9 @@ const FW={
     headers:['Recheck ID','User ID','User Name','Account ID','Consumer Name','Father/Husband','Address','Supply Type','Load','SDO Code','Present Status','Payment Mode','Payment Date','Meter Status','Site Reading','Mobile Number','Remarks','Latitude','Longitude','GPS Accuracy','Created At','Total Outstanding','Last Updated By User ID','Last Updated By Name','Last Updated At','Feeded Village Name','Connection Status','Last Pay Date','Last Pay Amount','Updated At','Video File','Video Key','Video Uploaded At'],
     fields:[
       {h:'Present Status',t:'chips',o:['FOUND CONNECTED','FOUND DISCONNECTED','RECONNECTED AFTER PAYMENT','METER REMOVED','HOUSE LOCKED'],req:1},
-      {h:'Payment Mode',t:'sel',o:FW_PAYMODE,show:v=>v['Present Status']==='RECONNECTED AFTER PAYMENT'},
+      {h:'Payment Mode',t:'chips',o:FW_PAYMODE,show:v=>v['Present Status']==='RECONNECTED AFTER PAYMENT'},
       {h:'Payment Date',t:'date',show:v=>v['Present Status']==='RECONNECTED AFTER PAYMENT'},
-      {h:'Meter Status',t:'sel',o:['OK','DAMAGED','METER NOT FOUND'],req:1,d:'OK'},
+      {h:'Meter Status',t:'chips',o:['OK','DAMAGED','METER NOT FOUND'],req:1,d:'OK'},
       {h:'Site Reading',t:'num',hint:i=>hasRdg(i)?'Billed closing: '+rdgTxt(i):''},
       {h:'Mobile Number',t:'tel'},{h:'Father/Husband',t:'text'},{h:'Remarks',t:'area'}],
     autoCols:i=>({'Total Outstanding':srPay(i)??''}),
@@ -3500,61 +3523,105 @@ const sdoCode=i=>Object.keys(SDOMAP).find(k=>SDOMAP[k]===DIC.sdo[C.sdo[i]])||DIC
 function fwCommon(i){return {'Account ID':C.id[i],'Consumer Name':C.nm[i],'Address':C.ad[i]||'','Supply Type':DIC.tf[C.tf[i]]||'','Load':C.lraw[i]??'','SDO Code':sdoCode(i),
   'Connection Status':tdCs(i)||STN[C.st[i]],'Last Pay Date':dstr(C.lpd[i]||C.lypd[i]||(C.pmpd&&C.pmpd[i])||0).replace(/^–$/,''),'Last Pay Amount':C.lpa[i]??'','Feeded Village Name':''}}
 function fwVals(){const v={};document.querySelectorAll('#feForm2 [data-h]').forEach(el=>{if(el.classList.contains('fw-chips')){const on=el.querySelector('button.on');v[el.dataset.h]=on?on.dataset.v:''}else v[el.dataset.h]=el.value.trim()});return v}
-function fwShowHide(){const T=FW[FWT.type];if(!T)return;const v=fwVals();
-  T.fields.forEach(f=>{const box=$('#feForm2').querySelector(`[data-f="${CSS.escape(f.h)}"]`);if(box)box.hidden=f.show?!f.show(v):false});
-  const i=FE.sel;T.fields.forEach(f=>{if(!f.warn)return;const w=$('#feForm2').querySelector(`[data-w="${CSS.escape(f.h)}"]`);if(w)w.textContent=f.warn(v[f.h]||'',i)})}
+const fwReq=(f,v)=>typeof f.req==='function'?!!f.req(v):!!f.req;
+const fwBox=h=>$('#feForm2').querySelector(`[data-f="${CSS.escape(h)}"]`);
+function fwShowHide(){const T=FW[FWT.type];if(!T)return;const v=fwVals();const i=FE.sel;
+  T.fields.forEach(f=>{const box=fwBox(f.h);if(!box)return;box.hidden=f.show?!f.show(v):false;
+    const r=box.querySelector('.req');if(r)r.hidden=!fwReq(f,v);
+    if(f.warn){const w=box.querySelector('[data-w]');const t=f.warn(v[f.h]||'',i);w.textContent=t;w.className=/^✔/.test(t)?'info':'warn'}
+    if(!box.hidden&&v[f.h])box.classList.remove('miss')});
+  // a section disappears when all its fields are hidden
+  $('#feForm2').querySelectorAll('.fw-sec').forEach(sec=>{sec.hidden=![...sec.querySelectorAll('[data-f]')].some(b=>!b.hidden)});
+  const st=$('#fwStHint');if(st){const t=T.hint&&T.hint[v['Survey Status']];st.textContent=t||'';st.hidden=!t}
+  // progress: required (visible) fields filled
+  const need=T.fields.filter(f=>{const b=fwBox(f.h);return b&&!b.hidden&&fwReq(f,v)});const done=need.filter(f=>v[f.h]).length;
+  const pr=$('#fwProg');if(pr){pr.querySelector('i').style.width=(need.length?done/need.length*100:100)+'%';
+    pr.querySelector('span').textContent=done===need.length?'✔ All required filled — ready to save':`${done} of ${need.length} required filled`;pr.classList.toggle('ok',done===need.length)}
+  fwDraftSave()}
+/* unsaved draft survives an accidental close / reload */
+let fwDraftT=0;
+function fwDraftSave(){clearTimeout(fwDraftT);fwDraftT=setTimeout(()=>{if(FE.sel<0||!FW[FWT.type]||$('#feForm2').hidden)return;
+  lsSet('dvvnl_fw_draft',{type:FWT.type,acct:C.id[FE.sel],v:fwVals(),gps:FE.gps,t:Date.now()})},400)}
+const fwDraftClear=()=>lsSet('dvvnl_fw_draft',null);
 function fwRender(){
   const box=$('#feForm2');const i=FE.sel;const T=FW[FWT.type];
   if(!T||i<0){box.hidden=true;box.innerHTML='';return}
   $('#feForm').hidden=true;box.hidden=false;FE.gps=null;
   const auto=fwCommon(i);const out=srPay(i);
-  const fieldHtml=f=>{const val=f.auto?f.auto(i):f.remember?lsGet('dvvnl_fw_'+f.h,''):(f.d||'');const req=f.req?' <i class="req">*</i>':'';const hint=f.hint?f.hint(i):'';
+  const dft=lsGet('dvvnl_fw_draft',null);const draft=dft&&dft.type===FWT.type&&dft.acct===C.id[i]&&Date.now()-dft.t<864e5?dft:null;
+  const fieldHtml=f=>{let val=f.auto?f.auto(i):f.remember?lsGet('dvvnl_fw_'+f.h,''):f.rememberBy?lsGet('dvvnl_fw_'+f.rememberBy(i),''):(typeof f.d==='function'?f.d(i):(f.d||''));
+    const fromRec=typeof f.d==='function'&&val&&f.dNote;
+    if(draft&&f.h in draft.v)val=draft.v[f.h];
+    const req=f.req?' <i class="req">*</i>':'';const hint=f.hint?f.hint(i):'';
     let ctl='';
     if(f.t==='sel')ctl=`<select data-h="${esc(f.h)}">${(f.d||!f.req?'':'<option value="">— choose —</option>')+f.o.map(o=>`<option ${o===val?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
-    else if(f.t==='chips')ctl=`<div class="fw-chips" data-h="${esc(f.h)}">${f.o.map(o=>`<button type="button" data-v="${esc(o)}" class="${o===val?'on':''}">${esc(o)}</button>`).join('')}</div>`;
-    else if(f.t==='num')ctl=`<input type="number" step="any" min="0" inputmode="decimal" data-h="${esc(f.h)}">`;
-    else if(f.t==='date')ctl=`<input type="date" data-h="${esc(f.h)}">`;
-    else if(f.t==='tel')ctl=`<div class="fw-tel"><input type="tel" inputmode="numeric" maxlength="10" data-h="${esc(f.h)}" value="${esc(val)}" placeholder="${esc(C.mob[i]?'records: '+C.mob[i]:'10-digit mobile')}">${f.call?`<a class="btn sm" id="fwCallBtn" href="tel:${esc(val)}">📞 Call</a>`:''}</div>`;
-    else if(f.t==='area')ctl=`<textarea rows="2" data-h="${esc(f.h)}" placeholder="Anything else seen / told…"></textarea>`;
+    else if(f.t==='chips')ctl=`<div class="fw-chips${f.big?' big':''}${f.o.some(o=>o.length>18)?' long':''}" data-h="${esc(f.h)}" data-opt="${f.req?'':'1'}">${f.o.map(o=>`<button type="button" data-v="${esc(o)}" class="${o===val?'on':''}">${esc(o)}</button>`).join('')}</div>`;
+    else if(f.t==='num')ctl=`<div class="fw-num"><input type="number" step="any" min="0" inputmode="decimal" data-h="${esc(f.h)}" value="${esc(val)}">${f.unit?`<em>${esc(f.unit)}</em>`:''}</div>`;
+    else if(f.t==='date'){const d0=new Date(),dd=n=>{const x=new Date(d0.getTime()+n*864e5-d0.getTimezoneOffset()*6e4);return x.toISOString().slice(0,10)};
+      ctl=`<input type="date" data-h="${esc(f.h)}" value="${esc(val)}">${f.quick?`<div class="fw-quick">${[[0,'Today'],[1,'Tomorrow'],[3,'+3 days'],[7,'+1 week']].map(([n,l])=>`<button type="button" data-d="${dd(n)}">${l}</button>`).join('')}</div>`:''}`}
+    else if(f.t==='tel'){const rec=telOf(i);ctl=`<div class="fw-tel"><input type="tel" inputmode="numeric" maxlength="10" data-h="${esc(f.h)}" value="${esc(val)}" placeholder="10-digit mobile">${f.call?`<a class="btn sm" id="fwCallBtn" href="tel:${esc(val)}">📞 Call</a>`:rec?`<button type="button" class="btn sm" data-fill="${esc(rec)}">Use ${esc(rec)}</button>`:''}</div>`}
+    else if(f.t==='area')ctl=`<textarea rows="2" data-h="${esc(f.h)}" placeholder="Anything else seen / told…">${esc(val)}</textarea>`;
     else if(f.t==='ss')ctl=`<select data-h="${esc(f.h)}" id="fwSs">${DIC.ss.map((s,k)=>({s,k})).sort((a,b)=>nmSort({l:a.s},{l:b.s})).map(o=>`<option ${o.k===C.ss[i]?'selected':''}>${esc(o.s)}</option>`).join('')}</select>`;
     else if(f.t==='fd')ctl=`<select data-h="${esc(f.h)}" id="fwFd"></select>`;
     else ctl=`<input type="text" data-h="${esc(f.h)}" value="${esc(val)}" ${f.cap?'autocapitalize="characters"':''} ${f.ph?`placeholder="${esc(f.ph)}"`:''} ${f.list?`list="fwl_${f.h.replace(/\W/g,'')}"`:''}>${f.list?`<datalist id="fwl_${f.h.replace(/\W/g,'')}">${f.list.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`:''}`;
-    const wide=f.t==='chips'||f.t==='area'||f.t==='ss'||f.t==='fd';
-    return `<label class="${wide?'full':''}" data-f="${esc(f.h)}"><span>${esc(f.h)}${req}</span>${ctl}${hint?`<small class="info">${esc(hint)}</small>`:''}<small class="warn" data-w="${esc(f.h)}"></small></label>`};
+    const wide=f.t==='chips'||f.t==='area'||f.t==='ss'||f.t==='fd'||f.t==='tel'||f.t==='date';
+    return `<label class="${wide?'full':''}" data-f="${esc(f.h)}"><span>${esc(f.h)}${req}${fromRec?` <small class="fw-src">${esc(f.dNote)} — check</small>`:''}</span>${ctl}${hint?`<small class="info">${esc(hint)}</small>`:''}<small class="warn" data-w="${esc(f.h)}"></small></label>`};
+  // group into sections (fields without "sec" continue the previous one); "more" fields go in a collapsed box
+  const secs=[];T.fields.filter(f=>!f.more).forEach(f=>{if(f.sec||!secs.length)secs.push({t:f.sec||'',f:[]});secs[secs.length-1].f.push(f)});
+  const more=T.fields.filter(f=>f.more);
+  const secHtml=(sc,k)=>`<section class="fw-sec">${sc.t?`<h4>${esc(sc.t)}</h4>`:''}${k===0&&T.hint?'<div id="fwStHint" class="fw-sthint" hidden></div>':''}<div class="fgrid">${sc.f.map(fieldHtml).join('')}</div></section>`;
   box.innerHTML=`<div class="fw-head"><b>${T.l}</b> · goes to sheet <b>${esc(T.sheet)}</b></div>
+    ${draft?`<div class="fw-draft">↩ Restored your unsaved ${esc(T.l.replace(/^\S+\s/,''))} for this consumer (${new Date(draft.t).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}). <button type="button" class="linkbtn" id="fwDraftX">Start fresh</button></div>`:''}
     <div class="fw-auto"><span>Outstanding <b>${out==null?'–':fmtRsF(out)}</b></span><span>Connection <b>${esc(auto['Connection Status'])}</b></span><span>Last paid <b>${esc(auto['Last Pay Date']||'–')}${C.lpa[i]?' · '+fmtRsF(C.lpa[i]):''}</b></span><span>Load <b>${esc(String(auto['Load']))}</b> · ${esc(auto['Supply Type'])}</span></div>
-    <div class="fgrid">${T.fields.map(fieldHtml).join('')}</div>
+    ${secs.map(secHtml).join('')}
+    ${more.length?`<details class="fw-more"><summary>More details (optional)</summary><div class="fgrid">${more.map(fieldHtml).join('')}</div></details>`:''}
     ${T.noGps?'':'<div class="gps"><button type="button" class="btn sm" id="fwGps">📍 Capture GPS</button><span id="fwGpsT" class="muted">Location not captured</span></div>'}
-    <div id="fwErr" class="fe-msg"></div>
-    <div class="fe-actions"><button type="button" class="btn" id="fwCancel">Clear</button><button type="submit" class="btn primary big">💾 Save ${esc(T.l.replace(/^\S+\s/,''))}</button></div>`;
+    <div class="fw-foot"><div id="fwProg" class="fw-prog"><i></i><span></span></div><div id="fwErr" class="fe-msg"></div>
+    <div class="fe-actions"><button type="button" class="btn" id="fwCancel">Clear</button><button type="submit" class="btn primary big">💾 Save ${esc(T.l.replace(/^\S+\s/,''))}</button></div></div>`;
   const fillFd=()=>{const ss=DIC.ss.indexOf($('#fwSs').value);const opts=DIC.fd.map((v,k)=>({v,k})).filter(o=>D.fdss[o.k]===ss).sort((a,b)=>nmSort({l:a.v},{l:b.v}));$('#fwFd').innerHTML=opts.map(o=>`<option ${o.k===C.fd[i]?'selected':''}>${esc(o.v)}</option>`).join('')||'<option value="">(no feeders)</option>'};
-  if($('#fwSs')){fillFd();$('#fwSs').onchange=fillFd}
-  box.querySelectorAll('.fw-chips').forEach(c=>c.onclick=e=>{const b=e.target.closest('button');if(!b)return;c.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));fwShowHide()});
+  if($('#fwSs')){if(draft&&draft.v.Substation)$('#fwSs').value=draft.v.Substation;fillFd();if(draft&&draft.v.Feeder)$('#fwFd').value=draft.v.Feeder;$('#fwSs').onchange=fillFd}
+  // chips: one tap selects; tapping the selected chip again clears an optional one
+  box.querySelectorAll('.fw-chips').forEach(c=>c.onclick=e=>{const b=e.target.closest('button');if(!b)return;const off=b.classList.contains('on')&&c.dataset.opt;
+    c.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b&&!off));fwShowHide();
+    if(!off&&c.dataset.h==='Survey Status'&&FWT.type==='survey'){const v=fwVals();if(!FW_SEEN(v))fwBox('Remarks')?.querySelector('textarea')?.focus({preventScroll:true})}});
+  box.querySelectorAll('.fw-quick button').forEach(b=>b.onclick=()=>{const inp=b.closest('label').querySelector('input');inp.value=b.dataset.d;fwShowHide()});
+  box.querySelectorAll('[data-fill]').forEach(b=>b.onclick=()=>{const inp=b.closest('.fw-tel').querySelector('input');inp.value=b.dataset.fill;fwShowHide()});
   box.oninput=box.onchange=()=>{fwShowHide();const cb=$('#fwCallBtn');if(cb){const t=box.querySelector('[data-h="Mobile Number"]').value.replace(/\D/g,'');cb.href='tel:'+t}};
+  if($('#fwDraftX'))$('#fwDraftX').onclick=()=>{fwDraftClear();fwRender()};
   if($('#fwGps'))$('#fwGps').onclick=()=>{if(!navigator.geolocation){$('#fwGpsT').textContent='GPS not available';return}$('#fwGpsT').textContent='Getting location…';
-    navigator.geolocation.getCurrentPosition(p=>{FE.gps={lat:+p.coords.latitude.toFixed(7),lng:+p.coords.longitude.toFixed(7),acc:Math.round(p.coords.accuracy*10)/10};$('#fwGpsT').innerHTML=`<span class="okc">✔ ${FE.gps.lat}, ${FE.gps.lng}</span> (±${FE.gps.acc} m)`},
+    navigator.geolocation.getCurrentPosition(p=>{FE.gps={lat:+p.coords.latitude.toFixed(7),lng:+p.coords.longitude.toFixed(7),acc:Math.round(p.coords.accuracy*10)/10};
+      const weak=FE.gps.acc>50;$('#fwGpsT').innerHTML=`<span class="${weak?'warn':'okc'}">${weak?'⚠':'✔'} ${FE.gps.lat}, ${FE.gps.lng}</span> (±${FE.gps.acc} m)${weak?' — weak signal, tap again in the open':''}`;fwDraftSave()},
       e=>{$('#fwGpsT').innerHTML='<span class="errc">✖ '+esc(e.message||'Location denied')+'</span>'},{enableHighAccuracy:true,timeout:15000,maximumAge:30000})};
-  $('#fwCancel').onclick=()=>feSelect(-1);
+  $('#fwCancel').onclick=()=>{fwDraftClear();feSelect(-1)};
   box.onsubmit=e=>{e.preventDefault();fwSave()};
   fwShowHide();
-  if(!T.noGps&&navigator.geolocation)setTimeout(()=>$('#fwGps')&&$('#fwGps').click(),300);   // GPS captured automatically
+  if(draft&&draft.gps){FE.gps=draft.gps;$('#fwGpsT').innerHTML=`<span class="okc">✔ ${FE.gps.lat}, ${FE.gps.lng}</span> (±${FE.gps.acc} m)`}
+  else if(!T.noGps&&navigator.geolocation)setTimeout(()=>$('#fwGps')&&$('#fwGps').click(),300);   // GPS captured automatically
 }
 function fwId(pre){const d=new Date();return `${pre}-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${Date.now()}-${Math.floor(Math.random()*900+100)}`}
 function fwSave(){
-  const i=FE.sel;const T=FW[FWT.type];if(i<0||!T)return;const v=fwVals();const probs=[];
-  T.fields.forEach(f=>{const box=$('#feForm2').querySelector(`[data-f="${CSS.escape(f.h)}"]`);if(box&&box.hidden){v[f.h]='';return}
-    const x=v[f.h]||'';if(f.req&&!x)probs.push(f.h);
-    if(f.t==='num'&&x!==''&&(isNaN(+x)||+x<0))probs.push(f.h+' must be a positive number');
-    if(f.t==='tel'&&x&&!/^[6-9]\d{9}$/.test(x.replace(/\D/g,'')))probs.push(f.h+' (10 digits)')});
-  if(probs.length){$('#fwErr').innerHTML='<span class="errc">Please fill / check: '+probs.map(esc).join(', ')+'</span>';return}
-  T.fields.forEach(f=>{if(f.remember&&v[f.h])lsSet('dvvnl_fw_'+f.h,v[f.h])});
+  const i=FE.sel;const T=FW[FWT.type];if(i<0||!T)return;const v=fwVals();const probs=[],miss=[];
+  $('#feForm2').querySelectorAll('.miss').forEach(b=>b.classList.remove('miss'));
+  T.fields.forEach(f=>{const box=fwBox(f.h);if(box&&box.hidden){v[f.h]='';return}
+    const x=v[f.h]||'';let bad='';
+    if(fwReq(f,v)&&!x)bad=f.h;
+    else if(f.t==='num'&&x!==''&&(isNaN(+x)||+x<0))bad=f.h+' must be a positive number';
+    else if(f.t==='tel'&&x&&!/^[6-9]\d{9}$/.test(x.replace(/\D/g,'')))bad=f.h+' (10 digits)';
+    if(bad){probs.push(bad);if(box){box.classList.add('miss');miss.push(box)}}});
+  if(probs.length){$('#fwErr').innerHTML='<span class="errc">Please fill / check: '+probs.map(esc).join(', ')+'</span>';
+    const m=miss[0];if(m){m.closest('details')?.setAttribute('open','');m.scrollIntoView({behavior:'smooth',block:'center'});const c=m.querySelector('input,textarea,select');if(c)setTimeout(()=>c.focus({preventScroll:true}),350)}
+    return}
+  $('#fwErr').textContent='';
+  T.fields.forEach(f=>{if(f.remember&&v[f.h])lsSet('dvvnl_fw_'+f.h,v[f.h]);if(f.rememberBy&&v[f.h])lsSet('dvvnl_fw_'+f.rememberBy(i),v[f.h])});
   const row={...fwCommon(i),...(T.autoCols?T.autoCols(i):{}),...v,...(T.derive?T.derive(v):{})};
   if(!T.noGps){row['Latitude']=FE.gps?.lat??'';row['Longitude']=FE.gps?.lng??'';row['GPS Accuracy']=FE.gps?.acc??''}
   const id=fwId(T.pre);row[T.idH]=id;
   const e={id,type:FWT.type,row,acct:C.id[i],name:C.nm[i],by:FE.sess.username,deviceTime:new Date().toISOString(),mode:navigator.onLine?'online':'offline-sync'};
-  const q=feQueue();q.push(e);lsSet('dvvnl_fe_queue',q);feQBadge();
-  toast('✔ Saved '+C.nm[i]+(navigator.onLine?' — sending…':' on this device (offline)'),'ok');
-  feSelect(-1);$('#feQ1').select();feSync();
+  const q=feQueue();q.push(e);lsSet('dvvnl_fe_queue',q);feQBadge();fwDraftClear();
+  const today=new Date().toISOString().slice(0,10);const cnt=lsGet('dvvnl_fw_count',{});const k=today+'|'+FWT.type;cnt[k]=(cnt[k]||0)+1;
+  Object.keys(cnt).forEach(x=>{if(!x.startsWith(today))delete cnt[x]});lsSet('dvvnl_fw_count',cnt);
+  toast(`✔ Saved ${C.nm[i]} — ${cnt[k]} ${T.l.replace(/^\S+\s/,'').toLowerCase()}${cnt[k]>1?'s':''} today`+(navigator.onLine?' · sending…':' · on this device (offline)'),'ok');
+  feSelect(-1);$('#feQ1').value='';$('#feQ1').focus();$('#feQ1').scrollIntoView({behavior:'smooth',block:'center'});feSync();
 }
 function fwSetType(t){FWT.type=t;lsSet('dvvnl_fw_type',t);document.querySelectorAll('#feType button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   $('#feStep2T').textContent=t==='insp'?'Enter site data':FW[t].l.replace(/^\S+\s/,'')+' details';
