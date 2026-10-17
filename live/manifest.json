@@ -1,0 +1,26 @@
+{
+ "v": 1,
+ "keySalt": "owNme7wDDmEXE2sA+wAlmw==",
+ "iter": 200000,
+ "check": "48d50c54b6440ace",
+ "base": {
+  "file": "base.enc",
+  "id": "mvcpg04y",
+  "report": "17-Oct-2026",
+  "reportInt": 20261017,
+  "masterYm": 202510,
+  "pmYm": 202609,
+  "consumers": 176876,
+  "size": 13835640,
+  "publishedAt": "2026-10-17T18:03:13.714Z"
+ },
+ "daily": {
+  "file": "daily.enc",
+  "id": "1792208547",
+  "report": "17-Oct-2026",
+  "reportInt": 20261017,
+  "size": 15772712,
+  "publishedAt": "2026-10-17T09:12:27"
+ },
+ "updatedAt": "2026-10-17T18:03:13.714Z"
+}
