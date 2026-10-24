@@ -11,6 +11,7 @@
  * Version 4: also saves Survey / Disconnection / Recheck / Phone Calling data in their own tabs (created automatically).
  * Version 5: also moves survey / disconnection / recheck / call entries that an OLD script version saved in the Entries tab into their own tabs (automatically).
  * Version 6: can run behind the one-time LOADER script (Loader.gs) - then it updates itself from GitHub and never needs pasting again.
+ * Version 10: logins survive for 30 days (kept in Script Properties, not only the 6-hour cache) - refreshing the app no longer logs out.
  * Version 9: one active session per user (admin / developer exempt) - a second login logs the other device out, and every such event goes to the 'Unauthorized Logins' tab.
  * Version 5: opening the /exec URL in a browser shows the version and WHICH spreadsheet the entries go to (and how many rows each tab has).
  * After ANY change to this code: Deploy ▸ Manage deployments ▸ ✏ Edit ▸ Version: New version ▸ Deploy (URL stays the same).
@@ -30,8 +31,8 @@ var FW_TYPES = {
 };
 var FW_TEXT = ['Account ID','Mobile Number','Meter Number','SDO Code','User ID','Survey ID','Disconnection ID','Recheck ID','Calling ID'];
 var USER_HEADERS = ['Username','Password hash','Role','Full name','Active','Created','Last login','Dashboard access'];
-var SESSION_HOURS = 12;
-var VERSION = 9;
+var SESSION_HOURS = 720;   // 30 days - a login stays until log-out, another device logging in, or the user being made inactive
+var VERSION = 10;
 var LOG_HEADERS = ['Time','Username','Name','Role','Event','This device','This device ID','Other device','Other device ID','Other session started'];
 var SHEET_ID = '1QTJkyI14ApxcpD-D1rc7y3eHnjUngjvvJ4Xr92n2r_8';   // "EDD-I Orai Field Entries" - used if the script is not opened from the Sheet
 
@@ -149,7 +150,7 @@ function login_(req) {
   ensure_();
   var u = findUser_(req.username);
   if (!u || u.active !== 'Y' || u.hash !== String(req.hash)) return { ok: false, error: 'Wrong username or password' };
-  var token = Utilities.getUuid();
+  var token = Utilities.getUuid() + '~' + encodeURIComponent(u.username);
   var sess = { username: u.username, role: u.role, name: u.name };
   var cache = CacheService.getScriptCache();
   cache.put('t_' + token, JSON.stringify(sess), Math.min(SESSION_HOURS * 3600, 21600));
@@ -159,8 +160,9 @@ function login_(req) {
     try {
       var props = PropertiesService.getScriptProperties(), key = 'sess_' + u.username;
       var act = null; try { act = JSON.parse(props.getProperty(key) || 'null'); } catch (e) {}
-      var me = { t: token, dev: String(req.dev || ''), ua: String(req.ua || '').slice(0, 120), at: now_() };
-      if (act && act.t && cache.get('t_' + act.t) && !(me.dev && act.dev === me.dev)) {
+      var me = { t: token, dev: String(req.dev || ''), ua: String(req.ua || '').slice(0, 120), at: now_(), ms: Date.now() };
+      var live = act && act.t && (act.ms ? Date.now() - act.ms < SESSION_HOURS * 3600e3 : !!cache.get('t_' + act.t));
+      if (live && !(me.dev && act.dev === me.dev)) {
         logUnauth_(u, 'Second login while the user was active on another device - the other device was logged out', me, act);
         warn = 'This user ID was active on another device. That device has been logged out and this login has been recorded.';
       }
@@ -168,6 +170,11 @@ function login_(req) {
       me.old = old.slice(0, 5);
       props.setProperty(key, JSON.stringify(me));
     } finally { lock.releaseLock(); }
+  } else {
+    var pa = PropertiesService.getScriptProperties(), ka = 'sessa_' + u.username, list = [];
+    try { list = JSON.parse(pa.getProperty(ka) || '[]'); } catch (e) {}
+    list = list.filter(function (x) { return Date.now() - x.ms < SESSION_HOURS * 3600e3; });
+    list.unshift({ t: token, ms: Date.now() }); pa.setProperty(ka, JSON.stringify(list.slice(0, 10)));
   }
   u.sheet.getRange(u.row, 7).setValue(Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd HH:mm'));
   return { ok: true, token: token, username: u.username, role: u.role, name: u.name, dash: u.dash, hours: SESSION_HOURS, single: !isAdmin_(u.role), warn: warn };
@@ -176,10 +183,27 @@ function isAdmin_(r) { return r === 'admin' || r === 'developer'; }
 function now_() { return Utilities.formatDate(new Date(), 'Asia/Kolkata', 'yyyy-MM-dd HH:mm:ss'); }
 function logout_(req) {
   var c = CacheService.getScriptCache(), raw = req.token && c.get('t_' + req.token);
+  var s = raw ? JSON.parse(raw) : restore_(req.token);
   c.remove('t_' + req.token);
-  if (raw) { var s = JSON.parse(raw), props = PropertiesService.getScriptProperties(), key = 'sess_' + s.username;
-    try { var act = JSON.parse(props.getProperty(key) || 'null'); if (act && act.t === req.token) { act.t = ''; props.setProperty(key, JSON.stringify(act)); } } catch (e) {} }
+  if (s) { var props = PropertiesService.getScriptProperties();
+    try { var act = JSON.parse(props.getProperty('sess_' + s.username) || 'null'); if (act && act.t === req.token) { act.t = ''; props.setProperty('sess_' + s.username, JSON.stringify(act)); } } catch (e) {}
+    try { var l = JSON.parse(props.getProperty('sessa_' + s.username) || '[]'); var l2 = l.filter(function (x) { return x.t !== req.token; }); if (l2.length !== l.length) props.setProperty('sessa_' + s.username, JSON.stringify(l2)); } catch (e) {} }
   return { ok: true };
+}
+/* the 6-hour cache forgot the token: rebuild the session from Script Properties (logins last SESSION_HOURS) */
+function restore_(token) {
+  var m = /~([^~]+)$/.exec(String(token || '')); if (!m) return null;
+  var un = decodeURIComponent(m[1]), props = PropertiesService.getScriptProperties(), ok = false, max = SESSION_HOURS * 3600e3;
+  try { var act = JSON.parse(props.getProperty('sess_' + un) || 'null');
+    if (act && act.t === token && Date.now() - (act.ms || 0) < max) ok = true;
+    else if (act && (act.old || []).some(function (o) { return o.t === token; })) ok = true;      // an older device - auth_ then logs it out
+  } catch (e) {}
+  try { if (!ok && JSON.parse(props.getProperty('sessa_' + un) || '[]').some(function (x) { return x.t === token && Date.now() - x.ms < max; })) ok = true; } catch (e) {}
+  if (!ok) return null;
+  var u = findUser_(un); if (!u || u.active !== 'Y') return null;
+  var s = { username: u.username, role: u.role, name: u.name };
+  CacheService.getScriptCache().put('t_' + token, JSON.stringify(s), 21600);
+  return s;
 }
 /* the 'Unauthorized Logins' tab - created with its headers the first time something is logged */
 function logUnauth_(u, event, me, other) {
@@ -189,8 +213,8 @@ function logUnauth_(u, event, me, other) {
 }
 function auth_(req, needRole) {
   var raw = req.token && CacheService.getScriptCache().get('t_' + req.token);
-  if (!raw) { var e = new Error('Session expired — please log in again'); e.auth = true; throw e; }
-  var s = JSON.parse(raw);
+  var s = raw ? JSON.parse(raw) : restore_(req.token);
+  if (!s) { var e = new Error('Session expired — please log in again'); e.auth = true; throw e; }
   if (!isAdmin_(s.role)) {
     var act = null; try { act = JSON.parse(PropertiesService.getScriptProperties().getProperty('sess_' + s.username) || 'null'); } catch (x) {}
     if (act && act.t && act.t !== req.token) {
@@ -203,6 +227,7 @@ function auth_(req, needRole) {
       var k = new Error("Don't try to Unauthorized login. This user ID is now logged in on another device, so this device has been logged out.");
       k.auth = true; k.kicked = true; throw k;
     }
+    if (act && act.t === req.token && act.ms && Date.now() - act.ms > 86400e3) { act.ms = Date.now(); PropertiesService.getScriptProperties().setProperty('sess_' + s.username, JSON.stringify(act)); }   // still in use: keep it alive
   }
   if (needRole === 'admin' && s.role !== 'admin' && s.role !== 'developer') throw new Error('Admin only');
   if (needRole === 'developer' && s.role !== 'developer') throw new Error('Developer only');

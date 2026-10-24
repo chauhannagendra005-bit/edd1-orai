@@ -1,5 +1,5 @@
 /* EDD-I Orai app — offline support. The app files are cached; consumer data stays in the device's own storage. */
-const CACHE='eddi-orai-v46';
+const CACHE='eddi-orai-v47';
 const FILES=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','icon-maskable-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

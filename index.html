@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="202610232043">
+<meta name="app-version" content="202610241007">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDD-I Orai Billing Dashboard</title>
 <meta name="theme-color" content="#3730a3">
@@ -1321,7 +1321,7 @@ async function ukAccount(u,pw,verified){const un=normUser(u);try{const j=await f
   catch(e){if(e.auth||/wrong user ?name or password/i.test(e.message))throw new Error('Wrong user name or password');
     if(!verified){const env=await ukEntry(un);if(!env||!(await ukOpen(un,pw,env)))throw new Error(env?'Wrong user name or password':'Cannot check the login right now (no connection to the user list) — try again when online.')}
     let a=null;try{const m=await aclMan();const id=await ukId(un);const r=m&&m.ur&&m.ur[id];if(r)a={role:r.r,name:r.n||un,dash:r.d||''}}catch(x){}
-    a=a||lsGet('dvvnl_acct_'+un,null);if(a){FE.sess={token:'offline',username:un,...a,exp:Date.now()+12*3600e3};lsSet('dvvnl_fe_sess',FE.sess);lsSet('dvvnl_acct_'+un,a)}}}
+    a=a||lsGet('dvvnl_acct_'+un,null);if(a){FE.sess={token:'offline',username:un,...a,exp:Date.now()+30*864e5};lsSet('dvvnl_fe_sess',FE.sess);lsSet('dvvnl_acct_'+un,a)}}}
 const ukLoginHtml=(id,btn)=>`<input id="${id}U" placeholder="User name" autocapitalize="none" autocomplete="username" class="lk-in"><input id="${id}P" type="password" placeholder="Password" autocomplete="current-password" class="lk-in"><button class="btn primary imp-btn" id="${id}Go">${btn}</button>`;
 async function dataPut(blob){
   if(!HOSTED)return await idbSet('data',blob);
@@ -1334,7 +1334,7 @@ async function dataGet(){
   const e=await idbGet('dataEnc');if(e&&LOCK.key)return new Blob([await lvDecrypt(LOCK.key,await e.arrayBuffer())]);
   return await idbGet('data');   // older install, not yet encrypted
 }
-async function lockSet(k,src){LOCK.key=k;await idbSet('lock',{salt:k.salt,iter:k.iter,check:k.check,src});}
+async function lockSet(k,src){LOCK.key=k;await idbSet('lock',{salt:k.salt,iter:k.iter,check:k.check,src});if(src==='live')await idbSet('unlock',{k,check:k.check});}
 async function lockReset(){if(!confirm('Delete the dashboard data stored on this device? You will need the passphrase to download it again.'))return;
   for(const k of ['dataEnc','data','lock','liveKey'])await idbDel(k);location.reload()}
 /* lock screen; resolves when unlocked. mode 'set' = choose a new password (data imported from a file) */
@@ -1388,11 +1388,21 @@ async function lockGate(){
   const rec=await idbGet('lock'),enc=await idbGet('dataEnc'),plain=await idbGet('data');
   if(!enc&&!plain)return;                                  // nothing stored yet: first run asks for the passphrase
   if(!rec)await lvManifest();
+  else if(await lockAuto(rec)){if(plain&&!enc)await dataPut(plain);return}   // still logged in: no lock screen on refresh
   await lockScreen(rec||null);
+  try{if(LOCK.key&&rec&&LOCK.key.check===rec.check)await idbSet('unlock',{k:LOCK.key,check:LOCK.key.check})}catch(e){}
   if(plain&&!enc){await dataPut(plain)}                    // older install: encrypt what is stored
 }
+/* refresh / reopen while the login is still valid: unlock with the key kept on this device (it cannot be read out - non-extractable) */
+async function lockAuto(rec){
+  try{const un=await idbGet('unlock');const S=lsGet('dvvnl_fe_sess',null);
+    if(!un||!un.k||un.check!==rec.check||!S||!(S.exp>Date.now()))return false;
+    if(navigator.onLine){try{await Promise.race([lvManifest(),new Promise(r=>setTimeout(r,6000))])}catch(e){}}
+    if(LV.man&&LV.man.keySalt&&LV.man.keySalt!==rec.salt)return false;          // the office changed the passphrase: log in once to move over
+    LOCK.key=un.k;if(LV.man&&un.k.salt===LV.man.keySalt&&un.k.check===LV.man.check)LV.key=un.k;FE.sess=S;return true}
+  catch(e){return false}}
 function lockNow(){location.reload()}
-document.addEventListener('visibilitychange',()=>{if(!HOSTED||!LOCK.key)return;if(document.visibilityState==='hidden')LOCK.away=Date.now();else if(LOCK.away&&Date.now()-LOCK.away>10*60*1000)lockNow()});
+/* (no automatic lock after 10 minutes away any more - the login stays until log-out, another device logs in, or it expires) */
 async function load(){
   const el=document.getElementById('rawdata');const b64=el.textContent.trim();el.textContent='';
   let obj=null;
@@ -3172,7 +3182,7 @@ const FE_ABN=['No abnormality','Meter bypass','Direct hooking / theft','Seal mis
   'Load more than sanctioned','Tariff misuse (unauthorised use)','Meter not found at site','Premises locked','PD/TD but supply found','Meter at wrong location','Supply extended to others','Service cable damaged / unsafe'];
 const FE={url:'',sess:null,sel:-1,mode:'auto',scope:'mine',rows:[],headers:[],gps:null,timer:null};
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
-const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}if(k==='dvvnl_fe_sess'&&!v)try{idbDel('unlock')}catch(e){}};   // logging out also forgets the saved unlock
 const feQueue=()=>lsGet('dvvnl_fe_queue',[]);
 function toast(msg,kind){const t=$('#toast');t.textContent=msg;t.className='toast '+(kind||'');t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,3200)}
 /* --- SHA-256 (hex) --- */
@@ -3258,7 +3268,7 @@ let FE_HB=0;
 async function feBeat(force){
   const S=FE.sess;if(!S||!S.token||S.token==='offline'||S.token==='pass'||S.role==='admin'||S.role==='developer'||!navigator.onLine)return;
   if(!force&&document.visibilityState!=='visible')return;if(Date.now()-FE_HB<(force?15000:80000))return;FE_HB=Date.now();
-  try{if(await feRoute()==='gh')return;await sheetCall('check')}catch(e){if(e.auth&&!e.kicked&&!/Unknown action/.test(e.message))feAuthLost()}}
+  try{if(await feRoute()==='gh')return;await sheetCall('check');if(FE.sess){FE.sess.exp=Math.max(FE.sess.exp||0,Date.now()+30*864e5);lsSet('dvvnl_fe_sess',FE.sess)}}catch(e){if(e.auth&&!e.kicked&&!/Unknown action/.test(e.message))feAuthLost()}}
 setInterval(()=>feBeat(false),90000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')feBeat(true)});
 function feUrlProblem(u){
   if(!u)return 'Paste the web-app URL first.';
@@ -5895,7 +5905,7 @@ function aclGate(optional,msg){
   if($('#agGo')){$('#agGo').onclick=go;$('#agP').onkeydown=e=>{if(e.key==='Enter')go()};setTimeout(()=>$('#agU').focus(),50)}
   if($('#agPassGo'))$('#agPassGo').onclick=async()=>{try{const m=await aclMan();if(!m)throw new Error('Live data settings not reachable — check the internet connection');
       const k=await lvDerive($('#agPass').value,m.keySalt,m.iter||200000);if(k.check!==m.check)throw new Error('Wrong passphrase');UK.pass=$('#agPass').value;
-      FE.sess={token:'pass',username:'admin',role:'admin',name:'Admin (passphrase)',dash:'*',exp:Date.now()+12*3600e3};lsSet('dvvnl_fe_sess',FE.sess);g.remove();aclApply()}
+      FE.sess={token:'pass',username:'admin',role:'admin',name:'Admin (passphrase)',dash:'*',exp:Date.now()+30*864e5};lsSet('dvvnl_fe_sess',FE.sess);g.remove();aclApply()}
     catch(e){msgE('<span class="errc">✖ '+esc(e.message)+'</span>')}};
 }
 function startApp(){
