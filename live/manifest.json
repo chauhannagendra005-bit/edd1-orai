@@ -1,0 +1,64 @@
+{
+ "v": 1,
+ "keySalt": "S01NfnjZmKrslDc8ZGuVjQ==",
+ "iter": 200000,
+ "check": "2b69d796f7444850",
+ "base": {
+  "file": "base.enc",
+  "id": "mvlvn42e",
+  "report": "24-Oct-2026",
+  "reportInt": 20261024,
+  "masterYm": 202510,
+  "pmYm": 202609,
+  "consumers": 176916,
+  "size": 20352856,
+  "publishedAt": "2026-10-24T04:06:38.678Z"
+ },
+ "fe": {
+  "owner": "chauhannagendra005-bit",
+  "repo": "edd1-orai",
+  "branch": "field-entries",
+  "tok": "RURERU5DMQAhcs4go0wzjydRtQlAX/5b3rFR2ReG6cXb6lgPz2oWsfyuYCwK/u24crDKSH+kr6KBUpmhWFeIoy/G0HpqiOZgJU2TWtRWDp/4D2bMyrSxPeVY53V8oJ+MXNCBJHCI36WsEi8dk0z98f/0zv7JXy/2t87AvQz1Bo74HkL2SWrcaIJVLtg/8KKWXFIxEtbS2Mc=",
+  "url": "https://script.google.com/macros/s/AKfycbybdHYMjhcW3i6LVb3umEY2lYRgp301rufgQjxthXM0BLGWi7NfqoQ9Df76P40SX5a2Gw/exec"
+ },
+ "uk": {
+  "2e36768d32a5af4eb52128cd": {
+   "s": "DEIbbsjQ/Gzg+Z0/vSiTqQ==",
+   "i": 600000,
+   "w": "Jy5o10AKKx6k5QpkFZ0IOYAw4QRKNbh46WrGikhOkRiUZNtY6d5pJjAJUsEdbDJQ"
+  },
+  "bfe365a531e761ab5fc2c82b": {
+   "s": "7q8jnNLFGfsB4jov/6mi/Q==",
+   "i": 600000,
+   "w": "8vFK+ghDJaoHMcg7kIAICYNEd2dc0zRgx5f9Fg5U2Sr40yA35dnUpe1Igs3GCSor"
+  },
+  "03afef4b7f0e98870912b10d": {
+   "s": "ZEaQy4HGv9djGti/gg1pEg==",
+   "i": 600000,
+   "w": "2B/Kfy4qq5I1m9HXILFtGSLYXtwW81/ycjgkUV0eCMbTA0Wz4a6d77/I3AFzCsAo"
+  }
+ },
+ "ur": {
+  "bfe365a531e761ab5fc2c82b": {
+   "r": "field",
+   "d": "overview,ss,load,tariff,amt,bs,td,pay,unpaid,search",
+   "n": "SDO TOWN II"
+  }
+ },
+ "pc": {
+  "bd59d1d68d6fcecc7660d85d": {
+   "s": "5pvxhwpgyvQBIVhvRspfbA==",
+   "i": 200000,
+   "w": "obLb7xY4QTyKPpYEy/wAAZssCDDM4EhNsjuO2T5RXKkgliNpwJcv0sTsu5zNWTUn"
+  }
+ },
+ "daily": {
+  "file": "daily.enc",
+  "id": "1792812670",
+  "report": "24-Oct-2026",
+  "reportInt": 20261024,
+  "size": 17401288,
+  "publishedAt": "2026-10-24T09:01:10"
+ },
+ "updatedAt": "2026-10-24T04:06:38.678Z"
+}

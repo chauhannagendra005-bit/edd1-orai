@@ -1,0 +1,17 @@
+{
+  "name": "EDD-I Orai Billing & Revenue Dashboard",
+  "short_name": "EDD-I Orai",
+  "description": "Billing, revenue, unbilled, defaulter and field-entry dashboard for EDD-I Orai (DIV233422), DVVNL.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1e1b4b",
+  "theme_color": "#3730a3",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
