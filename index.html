@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="202610311002">
+<meta name="app-version" content="202610311023">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDD-I Orai Billing Dashboard</title>
 <meta name="theme-color" content="#3730a3">
@@ -4524,7 +4524,8 @@ function renderCmp(k){
     ...(ly?[{k:'ppys',l:'Paid LY same period'},{k:'ptus',l:'Turn up % LY same period',f:fmtP},{k:'dtus',l:'Δ',t:1,f:(v,r)=>cmpPts(r.tu,r.ptus)},{k:'ptu',l:'Turn up % LY full month',f:fmtP}]
       :[{k:'ppy',l:'Paid '+P+' (consumers)'},{k:'ptu',l:'Turn up % '+P,f:fmtP},{k:'dtu',l:'Δ',t:1,f:(v,r)=>cmpPts(r.tu,r.ptu)}]),
     {k:'col',l:'Collection till date',f:fmtRs},...(ly?[{k:'pcs',l:'LY same period',f:fmtRs},{k:'dcs',l:'Δ',t:1,f:dl('col','pcs')},{k:'pcol',l:'LY full month',f:fmtRs}]:[{k:'pcol',l:'Collection '+P+' (full)',f:fmtRs},{k:'dcol',l:'Δ',t:1,f:dl('col','pcol')}])];
-  delete TBL[k+'Tbl'];table(box,rows,cols,{foot:{...tot,name:'Total'},maxH:640});
+  const foot={...tot,name:'Total'};cols.forEach(c=>{if(foot[c.k]===undefined)foot[c.k]=0});   // so the Δ columns are worked out for the total too
+  delete TBL[k+'Tbl'];table(box,rows,cols,{foot,maxH:640});
   CMP[k].last={rows,tot,cols}}
 function cmpCsv(k){const x=CMP[k].last;if(!x)return;const cols=x.cols.filter(c=>!/^d/.test(c.k));
   const lines=[cols.map(c=>csvQ(c.l)).join(',')].concat(x.rows.concat([{...x.tot,name:'Total'}]).map(r=>cols.map(c=>csvQ(c.k==='name'?String(r.name).trim():typeof r[c.k]==='number'?(!isFinite(r[c.k])?'':/eff|tu/.test(c.k)?r[c.k].toFixed(1):Math.round(r[c.k]*100)/100):r[c.k])).join(',')));
