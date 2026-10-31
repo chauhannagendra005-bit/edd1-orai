@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="202610310933">
+<meta name="app-version" content="202610310949">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDD-I Orai Billing Dashboard</title>
 <meta name="theme-color" content="#3730a3">
@@ -4478,12 +4478,12 @@ let MMROWS=[];
 /* ================= Compare current reports with last-month / last-year master ================= */
 const CMP={cmpm:{dim:'tf'},cmly:{dim:'tf'}};
 function cmpPmb(i){const b=C.pmb&&C.pmb[i];if(b===0||b===1)return b;return (C.pmca[i]||0)!==0||(C.pmu[i]||0)>0?1:0}   // older saved data: billed = had an assessment
-function cmpAgg(){return {n:0,b:0,u:0,un:0,ca:0,col:0,pn:0,pb:0,pu:0,pun:0,pca:0,pcol:0,pcs:0}}
+function cmpAgg(){return {n:0,b:0,u:0,un:0,ca:0,col:0,pn:0,pb:0,pu:0,pun:0,pca:0,pcol:0,pcs:0,py:0,ppy:0,ppys:0}}
 function cmpAdd(a,i,ly){
   if(C.st[i]<2){a.n++;if(C.st[i]===0){a.b++;a.un+=C.un[i]||0;a.ca+=C.ca[i]||0}else a.u++}
-  if(C.mtd[i]&&C.lpd[i]>=MONTH0&&C.lpd[i]<MONTH0+100)a.col+=C.mtd[i];
-  if(ly){if(C.inm[i]){a.pn++;if(C.lyb[i]){a.pb++;a.pun+=C.lyu[i]||0;a.pca+=C.lyca[i]||0}else a.pu++;a.pcol+=C.lyp[i]||0;if(C.lyp[i]&&C.lypd[i]<=LYLAST)a.pcs+=C.lyp[i]}}
-  else if(C.pmin[i]){a.pn++;if(cmpPmb(i)){a.pb++;a.pun+=C.pmu[i]||0;a.pca+=C.pmca[i]||0}else a.pu++;a.pcol+=C.pmp[i]||0}
+  if(C.mtd[i]&&C.lpd[i]>=MONTH0&&C.lpd[i]<MONTH0+100){a.col+=C.mtd[i];if(C.mtd[i]>0)a.py++}
+  if(ly){if(C.inm[i]){a.pn++;if(C.lyb[i]){a.pb++;a.pun+=C.lyu[i]||0;a.pca+=C.lyca[i]||0}else a.pu++;a.pcol+=C.lyp[i]||0;if(C.lyp[i]>0)a.ppy++;if(C.lyp[i]&&C.lypd[i]<=LYLAST){a.pcs+=C.lyp[i];if(C.lyp[i]>0)a.ppys++}}}
+  else if(C.pmin[i]){a.pn++;if(cmpPmb(i)){a.pb++;a.pun+=C.pmu[i]||0;a.pca+=C.pmca[i]||0}else a.pu++;a.pcol+=C.pmp[i]||0;if(C.pmp[i]>0)a.ppy++}
 }
 const cmpD=(a,b)=>{if(!b)return '';const d=pct(a-b,b);if(!isFinite(d))return '';return `<span class="delta ${d>=0?'up':'dn'}">${d>=0?'▲':'▼'}${Math.abs(d).toFixed(1)}%</span>`};
 const cmpPts=(a,b)=>{if(isNaN(a)||isNaN(b))return '';const d=a-b;return `<span class="delta ${d>=0?'up':'dn'}">${d>=0?'+':''}${d.toFixed(1)} pts</span>`};
@@ -4500,7 +4500,8 @@ function cmpRows(k){
   else rows.sort((a,b)=>String(DIC.tf[a.key]).localeCompare(String(DIC.tf[b.key]),'en',{numeric:true}));
   const out=[];for(const r of rows){out.push({...r,lvl:0});if(split){if(r.S.n||r.S.pn)out.push({...r.S,name:'   ↳ 📶 Smart',lvl:1});if(r.NS.n||r.NS.pn)out.push({...r.NS,name:'   ↳ Non-smart',lvl:1})}}
   out.forEach(cmpFin);cmpFin(tot);return {rows:out,tot,ly}}
-function cmpFin(r){r.eff=pct(r.b,r.n);r.peff=pct(r.pb,r.pn);r.avg=r.b?r.un/r.b:NaN;r.pavg=r.pb?r.pun/r.pb:NaN}
+/* turn up = consumers who paid in the month ÷ total billed consumers */
+function cmpFin(r){r.tu=pct(r.py,r.b);r.ptu=pct(r.ppy,r.pb);r.ptus=pct(r.ppys,r.pb);r.eff=pct(r.b,r.n);r.peff=pct(r.pb,r.pn);r.avg=r.b?r.un/r.b:NaN;r.pavg=r.pb?r.pun/r.pb:NaN}
 function cmpLabels(ly){const p=ly?'LY '+ymLabel(masterYm()):'LM '+(pmYm()?ymLabel(pmYm()):'');return {p,pl:ly?'last year ('+ymLabel(masterYm(),1)+')':'last month ('+(pmYm()?ymLabel(pmYm(),1):'not loaded')+')'}}
 function renderCmp(k){
   const box=$('#'+k+'Tbl');if(!box)return;const ly=k==='cmly';const L=cmpLabels(ly);
@@ -4511,6 +4512,7 @@ function renderCmp(k){
   $('#'+k+'Kpi').innerHTML=kpi('Consumers',fmtN(tot.n),`${L.p}: ${fmtN(tot.pn)} ${cmpD(tot.n,tot.pn)}`)+kpi('Billed',fmtN(tot.b),`${L.p}: ${fmtN(tot.pb)} ${cmpD(tot.b,tot.pb)}`)+
     kpi('Unbilled',fmtN(tot.u),`${L.p}: ${fmtN(tot.pu)} ${cmpD(tot.u,tot.pu)}`)+kpi('Billing efficiency',fmtP(tot.eff),`${L.p}: ${fmtP(tot.peff)} ${cmpPts(tot.eff,tot.peff)}`,'hl')+
     kpi('Units billed',fmtN(tot.un)+' kWh',`${L.p}: ${fmtN(tot.pun)} ${cmpD(tot.un,tot.pun)}`)+kpi('Assessment',fmtRs(tot.ca),`${L.p}: ${fmtRs(tot.pca)} ${cmpD(tot.ca,tot.pca)}`)+
+    kpi('Turn up (paid ÷ billed)',fmtP(tot.tu),`${fmtN(tot.py)} paid of ${fmtN(tot.b)} billed · ${ly?`LY same period ${fmtP(tot.ptus)} ${cmpPts(tot.tu,tot.ptus)} · full ${fmtP(tot.ptu)}`:`${L.p}: ${fmtP(tot.ptu)} ${cmpPts(tot.tu,tot.ptu)}`}`,'hl')+
     kpi('Collection',fmtRs(tot.col),ly?`LY same period ${fmtRs(tot.pcs)} ${cmpD(tot.col,tot.pcs)} · full ${fmtRs(tot.pcol)}`:`${L.p} (full month): ${fmtRs(tot.pcol)} ${cmpD(tot.col,tot.pcol)}`);
   const P=L.p,dl=(a,b)=>(v,r)=>cmpD(r[a],r[b]);
   const cols=[{k:'name',l:{tf:'Tariff',lb:'Load band',sm:'Meter'}[CMP[k].dim],t:1,f:(v,r)=>r.lvl?`<span class="muted">${esc(v)}</span>`:`<b>${esc(v)}</b>`},
@@ -4520,11 +4522,14 @@ function renderCmp(k){
     {k:'eff',l:'Billing % now',f:fmtP},{k:'peff',l:'Billing % '+P,f:fmtP},{k:'de',l:'Δ',t:1,f:(v,r)=>cmpPts(r.eff,r.peff)},
     {k:'un',l:'Units now'},{k:'pun',l:'Units '+P},{k:'dun',l:'Δ',t:1,f:dl('un','pun')},
     {k:'ca',l:'Assessment now',f:fmtRs},{k:'pca',l:'Assessment '+P,f:fmtRs},{k:'dca',l:'Δ',t:1,f:dl('ca','pca')},
+    {k:'py',l:'Paid now (consumers)'},{k:'tu',l:'Turn up % now',f:fmtP},
+    ...(ly?[{k:'ppys',l:'Paid LY same period'},{k:'ptus',l:'Turn up % LY same period',f:fmtP},{k:'dtus',l:'Δ',t:1,f:(v,r)=>cmpPts(r.tu,r.ptus)},{k:'ptu',l:'Turn up % LY full month',f:fmtP}]
+      :[{k:'ppy',l:'Paid '+P+' (consumers)'},{k:'ptu',l:'Turn up % '+P,f:fmtP},{k:'dtu',l:'Δ',t:1,f:(v,r)=>cmpPts(r.tu,r.ptu)}]),
     {k:'col',l:'Collection till date',f:fmtRs},...(ly?[{k:'pcs',l:'LY same period',f:fmtRs},{k:'dcs',l:'Δ',t:1,f:dl('col','pcs')},{k:'pcol',l:'LY full month',f:fmtRs}]:[{k:'pcol',l:'Collection '+P+' (full)',f:fmtRs},{k:'dcol',l:'Δ',t:1,f:dl('col','pcol')}])];
   delete TBL[k+'Tbl'];table(box,rows,cols,{foot:{...tot,name:'Total'},maxH:640});
   CMP[k].last={rows,tot,cols}}
 function cmpCsv(k){const x=CMP[k].last;if(!x)return;const cols=x.cols.filter(c=>!/^d/.test(c.k));
-  const lines=[cols.map(c=>csvQ(c.l)).join(',')].concat(x.rows.concat([{...x.tot,name:'Total'}]).map(r=>cols.map(c=>csvQ(c.k==='name'?String(r.name).trim():typeof r[c.k]==='number'?(c.k.includes('eff')?r[c.k].toFixed(1):Math.round(r[c.k]*100)/100):r[c.k])).join(',')));
+  const lines=[cols.map(c=>csvQ(c.l)).join(',')].concat(x.rows.concat([{...x.tot,name:'Total'}]).map(r=>cols.map(c=>csvQ(c.k==='name'?String(r.name).trim():typeof r[c.k]==='number'?(!isFinite(r[c.k])?'':/eff|tu/.test(c.k)?r[c.k].toFixed(1):Math.round(r[c.k]*100)/100):r[c.k])).join(',')));
   csvSave(`Compare_${k==='cmly'?'last_year':'last_month'}_${CMP[k].dim}_${String(D.meta.report).replace(/[^\w-]/g,'')}.csv`,lines,x.rows.length)}
 function cmpPdf(k){const x=CMP[k].last;if(!x)return;const ly=k==='cmly',L=cmpLabels(ly);const dimL={tf:'Tariff-wise',lb:'Load-wise',sm:'Smart / non-smart'}[CMP[k].dim];
   const cols=x.cols;const cell=(c,r)=>{const v=r[c.k];if(c.f)return c.f(v,r);return typeof v==='number'?fmtN(v):esc(v??'')};
