@@ -2,7 +2,7 @@
 <html lang="en" data-app="field">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="202610311023">
+<meta name="app-version" content="202610311041">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDD-I Field Survey</title>
 <meta name="theme-color" content="#0f766e">
@@ -4520,10 +4520,10 @@ function renderCmp(k){
     {k:'eff',l:'Billing % now',f:fmtP},{k:'peff',l:'Billing % '+P,f:fmtP},{k:'de',l:'Δ',t:1,f:(v,r)=>cmpPts(r.eff,r.peff)},
     {k:'un',l:'Units now'},{k:'pun',l:'Units '+P},{k:'dun',l:'Δ',t:1,f:dl('un','pun')},
     {k:'ca',l:'Assessment now',f:fmtRs},{k:'pca',l:'Assessment '+P,f:fmtRs},{k:'dca',l:'Δ',t:1,f:dl('ca','pca')},
+    {k:'col',l:'Collection in current month (till '+dstr(LAST)+')',f:fmtRs},...(ly?[{k:'pcs',l:'Collection LY same period (till '+dstr(LYLAST)+')',f:fmtRs},{k:'dcs',l:'Δ',t:1,f:dl('col','pcs')},{k:'pcol',l:'Collection LY full month',f:fmtRs}]:[{k:'pcol',l:'Collection '+P+' (full month)',f:fmtRs},{k:'dcol',l:'Δ',t:1,f:dl('col','pcol')}]),
     {k:'py',l:'Paid now (consumers)'},{k:'tu',l:'Turn up % now',f:fmtP},
     ...(ly?[{k:'ppys',l:'Paid LY same period'},{k:'ptus',l:'Turn up % LY same period',f:fmtP},{k:'dtus',l:'Δ',t:1,f:(v,r)=>cmpPts(r.tu,r.ptus)},{k:'ptu',l:'Turn up % LY full month',f:fmtP}]
-      :[{k:'ppy',l:'Paid '+P+' (consumers)'},{k:'ptu',l:'Turn up % '+P,f:fmtP},{k:'dtu',l:'Δ',t:1,f:(v,r)=>cmpPts(r.tu,r.ptu)}]),
-    {k:'col',l:'Collection till date',f:fmtRs},...(ly?[{k:'pcs',l:'LY same period',f:fmtRs},{k:'dcs',l:'Δ',t:1,f:dl('col','pcs')},{k:'pcol',l:'LY full month',f:fmtRs}]:[{k:'pcol',l:'Collection '+P+' (full)',f:fmtRs},{k:'dcol',l:'Δ',t:1,f:dl('col','pcol')}])];
+      :[{k:'ppy',l:'Paid '+P+' (consumers)'},{k:'ptu',l:'Turn up % '+P,f:fmtP},{k:'dtu',l:'Δ',t:1,f:(v,r)=>cmpPts(r.tu,r.ptu)}])];
   const foot={...tot,name:'Total'};cols.forEach(c=>{if(foot[c.k]===undefined)foot[c.k]=0});   // so the Δ columns are worked out for the total too
   delete TBL[k+'Tbl'];table(box,rows,cols,{foot,maxH:640});
   CMP[k].last={rows,tot,cols}}
