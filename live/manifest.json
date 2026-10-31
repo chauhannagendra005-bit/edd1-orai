@@ -1,0 +1,97 @@
+{
+ "v": 1,
+ "keySalt": "S01NfnjZmKrslDc8ZGuVjQ==",
+ "iter": 200000,
+ "check": "2b69d796f7444850",
+ "base": {
+  "file": "base.enc",
+  "id": "mvw7m6dw",
+  "report": "31-Oct-2026",
+  "reportInt": 20261031,
+  "masterYm": 202510,
+  "pmYm": 202609,
+  "consumers": 176998,
+  "size": 20920264,
+  "publishedAt": "2026-10-31T09:39:32.180Z"
+ },
+ "fe": {
+  "owner": "chauhannagendra005-bit",
+  "repo": "edd1-orai",
+  "branch": "field-entries",
+  "tok": "RURERU5DMQDmzLUFHtk31PGtueXITf7hMOWB0bc4i0jho2tuCxt7xOBgqddnFlABObVlCPKjDxgNTYp1+fpaGx2O11jGp29cd7kH4NOYcla/gFp79UzlM+ngn01/FuKEC5URn3s/Ab7NWkT7Ft/5Zzxf4n5KVDR13ie7T3bSpaGF3PW1O6MgQGWY6TVKtvLSxFdJmn1ncm8=",
+  "url": "https://script.google.com/macros/s/AKfycbybdHYMjhcW3i6LVb3umEY2lYRgp301rufgQjxthXM0BLGWi7NfqoQ9Df76P40SX5a2Gw/exec"
+ },
+ "uk": {
+  "2e36768d32a5af4eb52128cd": {
+   "s": "DEIbbsjQ/Gzg+Z0/vSiTqQ==",
+   "i": 600000,
+   "w": "Jy5o10AKKx6k5QpkFZ0IOYAw4QRKNbh46WrGikhOkRiUZNtY6d5pJjAJUsEdbDJQ"
+  },
+  "bfe365a531e761ab5fc2c82b": {
+   "s": "7q8jnNLFGfsB4jov/6mi/Q==",
+   "i": 600000,
+   "w": "8vFK+ghDJaoHMcg7kIAICYNEd2dc0zRgx5f9Fg5U2Sr40yA35dnUpe1Igs3GCSor"
+  },
+  "03afef4b7f0e98870912b10d": {
+   "s": "ZEaQy4HGv9djGti/gg1pEg==",
+   "i": 600000,
+   "w": "2B/Kfy4qq5I1m9HXILFtGSLYXtwW81/ycjgkUV0eCMbTA0Wz4a6d77/I3AFzCsAo"
+  },
+  "25d30d3bb90bb7a4626ed954": {
+   "s": "/8LrTWRPSKDUkX4hyN+ABQ==",
+   "i": 600000,
+   "w": "Q9yf2hYQz63YZeyQ/kYVTw3J8UPv2oVRapIMrmoOtKx5pVzNbWTLfYPWcO5l23Ry"
+  },
+  "28e21d4cca2dddb1f242cae7": {
+   "s": "yy9QcBMPHPR+KmGopuRfjQ==",
+   "i": 600000,
+   "w": "7newqzznMoQ/0ZF04pMWw7/LeSncyoYazVS003cbS6VBMOxrq8Q7oYeFlWBhw1UC"
+  },
+  "afb2f00a820a45d2a71abca3": {
+   "s": "TKwKcZwJLvyJ7W/MyhKskw==",
+   "i": 600000,
+   "w": "ubW+MHlp5bFCK7MdBu8SKk+mRa9YX60eRERmkiR1/i9apVCpv2jjxGlhsoSb7xqi"
+  }
+ },
+ "ur": {
+  "bfe365a531e761ab5fc2c82b": {
+   "r": "field",
+   "d": "overview,ss,load,tariff,amt,bs,td,pay,unpaid,search",
+   "n": "SDO TOWN II"
+  },
+  "25d30d3bb90bb7a4626ed954": {
+   "r": "field",
+   "d": "overview,ss,td,search",
+   "n": "Mukul verma"
+  },
+  "28e21d4cca2dddb1f242cae7": {
+   "r": "field",
+   "d": "overview,ss,rev,pay,search",
+   "n": "Naveen kanjolia"
+  },
+  "afb2f00a820a45d2a71abca3": {
+   "r": "field",
+   "d": "overview,ss,pay,search",
+   "n": "Shivam sahu"
+  }
+ },
+ "pc": {
+  "bd59d1d68d6fcecc7660d85d": {
+   "s": "5pvxhwpgyvQBIVhvRspfbA==",
+   "i": 200000,
+   "w": "obLb7xY4QTyKPpYEy/wAAZssCDDM4EhNsjuO2T5RXKkgliNpwJcv0sTsu5zNWTUn"
+  }
+ },
+ "acl": {
+  "login": true
+ },
+ "daily": {
+  "file": "daily.enc",
+  "id": "1793417568",
+  "report": "31-Oct-2026",
+  "reportInt": 20261031,
+  "size": 19462920,
+  "publishedAt": "2026-10-31T09:02:48"
+ },
+ "updatedAt": "2026-10-31T09:39:32.180Z"
+}
