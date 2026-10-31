@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="202610310949">
+<meta name="app-version" content="202610311002">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EDD-I Orai Billing Dashboard</title>
 <meta name="theme-color" content="#3730a3">
@@ -969,8 +969,7 @@ a.tabx{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999
       <div class="tbar" style="margin:0 0 8px;flex-wrap:wrap;gap:8px"><h3 style="margin:0" id="cmpmH">📅 Compare: Last Month</h3><span class="spacer"></span>
         <div class="seg" id="cmpmDim"><button data-d="tf" class="on">Tariff-wise</button><button data-d="lb">Load-wise</button><button data-d="sm">Smart / Non-smart</button></div></div>
       <p class="sub" id="cmpmSub">Current billed + unbilled reports compared with the last-month master — same consumers grouped by their present tariff, load band and meter type. Header filters apply.</p>
-      <div class="tbar big-ctl"><label>Meter <select id="cmpmSm"><option value="">All meters</option><option value="1">Smart only</option><option value="0">Non-smart only</option></select></label>
-        <label class="chk"><input type="checkbox" id="cmpmSplit" checked> Show smart / non-smart under each row</label><span class="spacer"></span>
+      <div class="tbar big-ctl"><span class="muted" style="font-weight:600">Meter</span><div class="seg" id="cmpmSm" data-v=""><button data-v="" class="on">All meters</button><button data-v="1">📶 Smart</button><button data-v="0">Non-smart</button></div><span class="spacer"></span>
         <button class="btn primary" id="cmpmPdf">📄 PDF</button><button class="btn" id="cmpmCsv">⭳ CSV</button></div>
       <div class="grid kpis" id="cmpmKpi" style="margin:10px 0"></div>
       <div id="cmpmTbl"></div>
@@ -981,8 +980,7 @@ a.tabx{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999
       <div class="tbar" style="margin:0 0 8px;flex-wrap:wrap;gap:8px"><h3 style="margin:0" id="cmlyH">📆 Compare: Last Year</h3><span class="spacer"></span>
         <div class="seg" id="cmlyDim"><button data-d="tf" class="on">Tariff-wise</button><button data-d="lb">Load-wise</button><button data-d="sm">Smart / Non-smart</button></div></div>
       <p class="sub" id="cmlySub">Current billed + unbilled reports compared with the last-year master — same consumers grouped by their present tariff, load band and meter type. Header filters apply.</p>
-      <div class="tbar big-ctl"><label>Meter <select id="cmlySm"><option value="">All meters</option><option value="1">Smart only</option><option value="0">Non-smart only</option></select></label>
-        <label class="chk"><input type="checkbox" id="cmlySplit" checked> Show smart / non-smart under each row</label><span class="spacer"></span>
+      <div class="tbar big-ctl"><span class="muted" style="font-weight:600">Meter</span><div class="seg" id="cmlySm" data-v=""><button data-v="" class="on">All meters</button><button data-v="1">📶 Smart</button><button data-v="0">Non-smart</button></div><span class="spacer"></span>
         <button class="btn primary" id="cmlyPdf">📄 PDF</button><button class="btn" id="cmlyCsv">⭳ CSV</button></div>
       <div class="grid kpis" id="cmlyKpi" style="margin:10px 0"></div>
       <div id="cmlyTbl"></div>
@@ -4488,7 +4486,7 @@ function cmpAdd(a,i,ly){
 const cmpD=(a,b)=>{if(!b)return '';const d=pct(a-b,b);if(!isFinite(d))return '';return `<span class="delta ${d>=0?'up':'dn'}">${d>=0?'▲':'▼'}${Math.abs(d).toFixed(1)}%</span>`};
 const cmpPts=(a,b)=>{if(isNaN(a)||isNaN(b))return '';const d=a-b;return `<span class="delta ${d>=0?'up':'dn'}">${d>=0?'+':''}${d.toFixed(1)} pts</span>`};
 function cmpRows(k){
-  const ly=k==='cmly',dim=CMP[k].dim,sm=$('#'+k+'Sm').value,split=$('#'+k+'Split').checked&&dim!=='sm'&&sm==='';
+  const ly=k==='cmly',dim=CMP[k].dim,sm=$('#'+k+'Sm').dataset.v||'',split=false;
   const kf={tf:i=>C.tf[i],lb:i=>C.lb[i],sm:i=>C.sm[i]?1:0}[dim];
   const nm={tf:x=>DIC.tf[x]+(TF_NM[DIC.tf[x]]?' – '+TF_NM[DIC.tf[x]]:''),lb:x=>x,sm:x=>x?'📶 Smart':'Non-smart'}[dim];
   const g=new Map(),tot=cmpAgg();
@@ -4515,7 +4513,7 @@ function renderCmp(k){
     kpi('Turn up (paid ÷ billed)',fmtP(tot.tu),`${fmtN(tot.py)} paid of ${fmtN(tot.b)} billed · ${ly?`LY same period ${fmtP(tot.ptus)} ${cmpPts(tot.tu,tot.ptus)} · full ${fmtP(tot.ptu)}`:`${L.p}: ${fmtP(tot.ptu)} ${cmpPts(tot.tu,tot.ptu)}`}`,'hl')+
     kpi('Collection',fmtRs(tot.col),ly?`LY same period ${fmtRs(tot.pcs)} ${cmpD(tot.col,tot.pcs)} · full ${fmtRs(tot.pcol)}`:`${L.p} (full month): ${fmtRs(tot.pcol)} ${cmpD(tot.col,tot.pcol)}`);
   const P=L.p,dl=(a,b)=>(v,r)=>cmpD(r[a],r[b]);
-  const cols=[{k:'name',l:{tf:'Tariff',lb:'Load band',sm:'Meter'}[CMP[k].dim],t:1,f:(v,r)=>r.lvl?`<span class="muted">${esc(v)}</span>`:`<b>${esc(v)}</b>`},
+  const cols=[{k:'name',l:{tf:'Tariff',lb:'Load band',sm:'Meter'}[CMP[k].dim]+({'1':' (smart meters)','0':' (non-smart meters)'}[$('#'+k+'Sm').dataset.v||'']||''),t:1,f:(v,r)=>r.lvl?`<span class="muted">${esc(v)}</span>`:`<b>${esc(v)}</b>`},
     {k:'n',l:'Consumers now'},{k:'pn',l:'Consumers '+P},{k:'dn',l:'Δ',t:1,f:dl('n','pn')},
     {k:'b',l:'Billed now'},{k:'pb',l:'Billed '+P},{k:'db',l:'Δ',t:1,f:dl('b','pb')},
     {k:'u',l:'Unbilled now'},{k:'pu',l:'Unbilled '+P},{k:'du',l:'Δ',t:1,f:dl('u','pu')},
@@ -4530,11 +4528,11 @@ function renderCmp(k){
   CMP[k].last={rows,tot,cols}}
 function cmpCsv(k){const x=CMP[k].last;if(!x)return;const cols=x.cols.filter(c=>!/^d/.test(c.k));
   const lines=[cols.map(c=>csvQ(c.l)).join(',')].concat(x.rows.concat([{...x.tot,name:'Total'}]).map(r=>cols.map(c=>csvQ(c.k==='name'?String(r.name).trim():typeof r[c.k]==='number'?(!isFinite(r[c.k])?'':/eff|tu/.test(c.k)?r[c.k].toFixed(1):Math.round(r[c.k]*100)/100):r[c.k])).join(',')));
-  csvSave(`Compare_${k==='cmly'?'last_year':'last_month'}_${CMP[k].dim}_${String(D.meta.report).replace(/[^\w-]/g,'')}.csv`,lines,x.rows.length)}
+  csvSave(`Compare_${k==='cmly'?'last_year':'last_month'}_${CMP[k].dim}${{'1':'_smart','0':'_nonsmart'}[$('#'+k+'Sm').dataset.v||'']||''}_${String(D.meta.report).replace(/[^\w-]/g,'')}.csv`,lines,x.rows.length)}
 function cmpPdf(k){const x=CMP[k].last;if(!x)return;const ly=k==='cmly',L=cmpLabels(ly);const dimL={tf:'Tariff-wise',lb:'Load-wise',sm:'Smart / non-smart'}[CMP[k].dim];
   const cols=x.cols;const cell=(c,r)=>{const v=r[c.k];if(c.f)return c.f(v,r);return typeof v==='number'?fmtN(v):esc(v??'')};
   const h=`<section class="rpt-mod-s" style="--mc:#4f46e5"><div class="rpt-cover" style="background:linear-gradient(120deg,#312e81,#4f46e5 55%,#0ea5e9)"><div class="rpt-logo">${ly?'📆':'📅'}</div><div><div class="rpt-org">Electricity Distribution Division-I, Orai (DIV233422) · DVVNL</div><h1>${dimL} comparison with ${esc(L.pl)}</h1>
-    <div class="rpt-meta">Reports dated <b>${esc(D.meta.report)}</b> · generated ${esc(new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}))}${$('#'+k+'Sm').value!==''?' · '+esc($('#'+k+'Sm').selectedOptions[0].text):''}</div></div></div>
+    <div class="rpt-meta">Reports dated <b>${esc(D.meta.report)}</b> · generated ${esc(new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}))}${$('#'+k+'Sm').dataset.v?' · '+($('#'+k+'Sm').dataset.v==='1'?'Smart meters only':'Non-smart meters only'):''}</div></div></div>
     <div class="rpt-kpis">${$('#'+k+'Kpi').innerHTML}</div>
     <table class="rpt-t"><thead><tr>${cols.map(c=>`<th class="${c.t?'t':''}">${esc(c.l)}</th>`).join('')}</tr></thead><tbody>${x.rows.map(r=>`<tr class="${r.lvl?'':'sub'}">${cols.map(c=>`<td class="${c.t?'t':'num'}">${cell(c,r)}</td>`).join('')}</tr>`).join('')}
     <tr class="sub">${cols.map(c=>`<td class="${c.t?'t':'num'}">${c.k==='name'?'Total':cell(c,{...x.tot})}</td>`).join('')}</tr></tbody></table></section>`;
@@ -4542,7 +4540,7 @@ function cmpPdf(k){const x=CMP[k].last;if(!x)return;const ly=k==='cmly',L=cmpLab
   rptDownload({title:(ly?'Compare last year ':'Compare last month ')+dimL,paper:'A4L',progress:()=>{}}).catch(e=>{toast('✖ '+e.message,'warn');root.className='';root.innerHTML=''})}
 function cmpInit(){for(const k of ['cmpm','cmly']){if(!$('#'+k+'Card'))continue;
   $('#'+k+'Dim').querySelectorAll('button').forEach(b=>b.onclick=()=>{CMP[k].dim=b.dataset.d;$('#'+k+'Dim').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderCmp(k)});
-  [k+'Sm',k+'Split'].forEach(id=>$('#'+id).onchange=()=>renderCmp(k));$('#'+k+'Csv').onclick=()=>cmpCsv(k);$('#'+k+'Pdf').onclick=()=>cmpPdf(k)}}
+  $('#'+k+'Sm').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('#'+k+'Sm').dataset.v=b.dataset.v;$('#'+k+'Sm').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderCmp(k)});$('#'+k+'Csv').onclick=()=>cmpCsv(k);$('#'+k+'Pdf').onclick=()=>cmpPdf(k)}}
 /* ================= Zero consumption (meter reader module) ================= */
 let ZCROWS=[];
 const zcEarlier=i=>Math.max(C.pmu?C.pmu[i]||0:0,C.lyu?C.lyu[i]||0:0);
